@@ -33,10 +33,9 @@ public class Handler {
 		
 	}
 	public void dropPassenger(Passenger p,Iterator<Passenger> itr,int i) {
-		int newWeight=lift.getLoadWeight()-p.getWeight();
-		lift.setLoadWeight(newWeight);
+		lift.setLoadWeight(lift.getLoadWeight()-p.getWeight());
 		itr.remove();
-		System.out.printf("lift %s dropped Passenger!%n",i);
+		outputDroppedMsg(i);
 	}
 
 	public boolean curFloorHaveRequest2(int f) {
@@ -58,7 +57,7 @@ public class Handler {
 	public void directionHandle() {
 		if(!lift.getStatus().equals("idle")) {
 			if(!lift.haveReqAccepted()&&lift.isEmpty()) {//no request accepted and no passenger in lift
-				if (lift.getCurrentFloor()>0 && lift.getDirection()==1) {//get back to ground
+				if (isNotGoingToTheGround(lift)){
 					lift.setDirection(0);
 				}
 			}
@@ -80,10 +79,11 @@ public class Handler {
 			if(lift.getCurrentFloor()==0&&lift.isEmpty()&&!lift.haveReqAccepted()) {//reset lift status
 				lift.setDirection(1);
 				lift.setStatus(new Idle());
-				System.out.printf("arrived to 0/F, idling...%n");
+				outputArrivedGroundMsg();
 			}
 		}
 	}
+
 	public void handleCurrentFloor(int f,int index) {//index is lift no.
 		if (curFloorHaveRequest2(f)) {
 			Iterator<Request> iterator=null;
@@ -108,7 +108,7 @@ public class Handler {
 						count++;
 						
 					} catch (OverWeightException e) {
-						System.out.printf("Ignore people %s since overload%n",count);
+						outputIgnoreMsg(count);
 						b.getFlrMap().get(f).setUpflag(false);
 						lift.setStatus(new Full());
 						break;
@@ -123,7 +123,7 @@ public class Handler {
 				if (!flr.haveDownReq()) {
 					flr.setDownflag(false);
 				}
-				System.out.printf("Lift %s Loaded %s people at %s/F %n",index,count,lift.getCurrentFloor());
+				outputLoadedMsg(index,count,lift.getCurrentFloor());
 				if(dirflag==1)
 					lift.getUpReqFloorList().remove((Integer) f);	
 				else
@@ -132,5 +132,25 @@ public class Handler {
 			
 		}
 		checkArriveToTarget(index);
+	}
+	
+	private boolean isNotGoingToTheGround(Lift li) {
+		return(li.getCurrentFloor()>0 && li.getDirection()==1);
+	}
+
+	private void outputIgnoreMsg(int c) {
+		System.out.printf("Ignore people %s since overload%n",c);
+	}
+
+	private void outputLoadedMsg(int i, int c, int f) {
+		System.out.printf("Lift %s Loaded %s people at %s/F %n",i,c,f);
+	}
+
+	private void outputArrivedGroundMsg() {
+		System.out.printf("arrived to 0/F, idling...%n");
+	}
+
+	private void outputDroppedMsg(int i) {
+		System.out.printf("lift %s dropped Passenger!%n",i);
 	}
 }
